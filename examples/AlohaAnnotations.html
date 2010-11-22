@@ -107,8 +107,8 @@ $(document).ready(function() {
     
     // preFillSuggestions 
     var preFillSuggestions = [
-        {value: "1", name: "suggestion one"},
-        {value: "2", name: "suggestion two"},
+        {value: "1", name: "suggestion one", resource: "http://rdf.freebase.com/ns/en.suggestion_one"},
+        {value: "2", name: "suggestion two", resource: "http://rdf.freebase.com/ns/en.suggestion_two"},
     ];
     
     $("#suggestions input[type=text]").autoSuggest(data.items, {selectedItemProp: "name", 
@@ -183,7 +183,7 @@ morning." "Aloha ʻauinalā" means "good afternoon" and "aloha ahiahi" means "go
 </ul>
 </div>
 
-<div id="suggestions">
+<div id="suggestions" >
     <input type="text" value="" name="suggestions" />
 </div>
 
@@ -192,6 +192,15 @@ morning." "Aloha ʻauinalā" means "good afternoon" and "aloha ahiahi" means "go
     <ul>
         <li class="as-removed-item" id="as-removed-aloha">Aloha</li>
     </ul>
+</div>
+
+<hr />
+
+<div id="suggestions_print">
+    <ul class="as-selections" id="as-selections-0366" xmlns:ctag="http://commontag.org/ns#" rel="ctag:tagged">
+        <li typeof="ctag:Tag" rel="ctag:means" resource="http://rdf.freebase.com/ns/en.suggestion_one" content="suggestion one" property="ctag:label" class="as-selection-item blur" id="as-selection-0000">suggestion one</li>
+        <li typeof="ctag:Tag" rel="ctag:means" resource="http://rdf.freebase.com/ns/en.suggestion_two" content="suggestion two" property="ctag:label" class="as-selection-item blur" id="as-selection-0001">suggestion two</li>
+        </ul>
 </div>
 
 <hr />

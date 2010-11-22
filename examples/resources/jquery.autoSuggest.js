@@ -85,7 +85,8 @@
 				// End Patch
 				
 				// Setup basic elements and render them to the DOM
-				input.wrap('<ul class="as-selections" id="as-selections-'+x+'"></ul>').wrap('<li class="as-original" id="as-original-'+x+'"></li>');
+				// @todo ctag about="#contentAloha" 
+				input.wrap('<ul class="as-selections" id="as-selections-'+x+'" xmlns:ctag="http://commontag.org/ns#" rel="ctag:tagged"></ul>').wrap('<li class="as-original" id="as-original-'+x+'"></li>');
 				var selections_holder = $("#as-selections-"+x);
 				var org_li = $("#as-original-"+x);				
 				var results_holder = $('<div class="as-results" id="as-results-'+x+'"></div>').hide();
@@ -338,7 +339,7 @@
 					if (opts.disallowDuplicates == true) {
 						
 						var removedSuggestions = [];
-					    $("#removedSuggestions li").each(function(index) { // move element name to config
+					    $("#removedSuggestions li").each(function(index) { // @todo move element name to config
 							//console.log(index);
 							removedSuggestions.push($(this).text().toLowerCase());
 						});
@@ -367,7 +368,7 @@
 					}
 					
 					values_input.val(values_input.val()+data[opts.selectedValuesProp]+",");
-					var item = $('<li class="as-selection-item" id="as-selection-'+num+'"></li>').click(function(){
+					var item = $('<li typeof="ctag:Tag" rel="ctag:means" resource="'+data.resource+'" content="'+data.name+'" property="ctag:label" class="as-selection-item" id="as-selection-'+num+'"></li>').click(function(){
 							opts.selectionClick.call(this, $(this));
 							selections_holder.children().removeClass("selected");
 							$(this).addClass("selected");
