@@ -23,6 +23,7 @@
 	$.fn.autoSuggest = function(data, options) {
 		var defaults = { 
 			asHtmlID: false,
+			disallowDuplicates: true, // rene
 			startText: "Enter Name Here",
 			emptyText: "No Results Found",
 			preFill: {},
@@ -54,6 +55,7 @@
 		
 		var d_type = "object";
 		var d_count = 0;
+		
 		if(typeof data == "string") {
 			d_type = "string";
 			var req_string = data;
@@ -75,8 +77,16 @@
 				input.attr("autocomplete","off").addClass("as-input").attr("id",x_id).val(opts.startText);
 				var input_focus = false;
 				
+				// Patch to add elements externally
+				// Rene Kapusta 2010/11/10 
+				input[0].add_selected_item = function (data, num){
+					add_selected_item(data, num);
+				}
+				// End Patch
+				
 				// Setup basic elements and render them to the DOM
-				input.wrap('<ul class="as-selections" id="as-selections-'+x+'"></ul>').wrap('<li class="as-original" id="as-original-'+x+'"></li>');
+				// @todo ctag about="#contentAloha" 
+				input.wrap('<ul class="as-selections" id="as-selections-'+x+'" xmlns:ctag="http://commontag.org/ns#" rel="ctag:tagged"></ul>').wrap('<li class="as-original" id="as-original-'+x+'"></li>');
 				var selections_holder = $("#as-selections-"+x);
 				var org_li = $("#as-original-"+x);				
 				var results_holder = $('<div class="as-results" id="as-results-'+x+'"></div>').hide();
@@ -324,8 +334,41 @@
 				}
 				
 				function add_selected_item(data, num){
+					
+					// rene patch start
+					if (opts.disallowDuplicates == true) {
+						
+						var removedSuggestions = [];
+					    $("#removedSuggestions li").each(function(index) { // @todo move element name to config
+							//console.log(index);
+							removedSuggestions.push($(this).text().toLowerCase());
+						});
+						
+						var e = false;
+						org_li.parent().children().each(function(index) {
+							var el = $(this).clone();
+							el.children('a').remove();
+							if (el.text() == data.name) {
+								e = 1;
+							}
+							
+							if (jQuery.inArray(data.name.toLowerCase(), removedSuggestions) > -1) {
+								e = 2;
+							}
+						  });
+						
+						if (e > 0) {
+							return;
+						}
+					}
+					// rene patch end
+					
+					if (num == undefined) {
+						num = d_count++;
+					}
+					
 					values_input.val(values_input.val()+data[opts.selectedValuesProp]+",");
-					var item = $('<li class="as-selection-item" id="as-selection-'+num+'"></li>').click(function(){
+					var item = $('<li typeof="ctag:Tag" rel="ctag:means" resource="'+data.resource+'" content="'+data.name+'" property="ctag:label" class="as-selection-item" id="as-selection-'+num+'"></li>').click(function(){
 							opts.selectionClick.call(this, $(this));
 							selections_holder.children().removeClass("selected");
 							$(this).addClass("selected");
@@ -348,20 +391,20 @@
 							var start = lis.eq(0);
 						} else {
 							var start = lis.filter(":last");
-						}					
+						}
 						var active = $("li.active:first", results_holder);
 						if(active.length > 0){
 							if(direction == "down"){
 							start = active.next();
 							} else {
 								start = active.prev();
-							}	
+							}
 						}
 						lis.removeClass("active");
 						start.addClass("active");
 					}
 				}
-									
+
 			});
 		}
 	}
