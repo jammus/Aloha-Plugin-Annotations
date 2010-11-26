@@ -348,11 +348,12 @@
 						org_li.parent().children().each(function(index) {
 							var el = $(this).clone();
 							el.children('a').remove();
-							if (el.text() == data.name) {
+							if (el.text() == data.name || el.text() == data.value) {
 								e = 1;
 							}
-							
-							if (jQuery.inArray(data.name.toLowerCase(), removedSuggestions) > -1) {
+
+							var name = data.name ? data.name.toLowerCase() : (data.value ? data.value.toLowerCase() : null);
+							if (jQuery.inArray(name, removedSuggestions) > -1) {
 								e = 2;
 							}
 						  });
