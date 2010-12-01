@@ -67,14 +67,14 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 			
 			/* test proxy; move to settings */
 			var proxyUrl = 'http://localhost/aloha-editor/Aloha-Plugin-Annotations/proxy.php?url=';
-			var serviceUrl = 'http://fise.demo.nuxeo.com/engines/';
+			var serviceUrl = 'http://localhost:8080/engines/';
 			var url = proxyUrl + serviceUrl;
 			var timeout = 10000;
 
 			var data = {
 				content: GENTICS.Aloha.activeEditable.getContents(),
 				ajax: true,
-				format:  "application/json" // application/json, application/rdf+xml, application/rdf+json, text/turtle or text/rdf+nt
+				format:  "text/plain" // application/json, application/rdf+xml, application/rdf+json, text/turtle or text/rdf+nt
 			};
 
 			// submit the data to our proxy
@@ -86,7 +86,7 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 				contentType: 'text/plain',
 				cache: false,
 				beforeSend : function (xhr) {
-					xhr.setRequestHeader('Accept', 'application/xml, text/xml');
+					xhr.setRequestHeader('Accept', 'text/plain');
 					xhr.setRequestHeader('X-Service-Info', 'Aloha Annotation Service');
 				},
 				success: function(result) {
@@ -95,14 +95,14 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 					var suggestions = [];
 					var ns_str = 'ns1';
 					
-					$.each(obj["#"], function(index, value) { 
+					/*$.each(obj["@"], function(index, value) { 
 						// search for namespace: http://fise.iks-project.eu/ontology/
 						var re = new RegExp("http:\/\/fise.iks-project.eu\/ontology\/");
 						var match = re.exec(value);
 						if (match != null) {
 							ns_str = index;
 						}
-					});
+					});*/
 					
 					// try / catch instead of:
 					if (obj["@"] == undefined) {
@@ -112,9 +112,10 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 					
 					for (i = 0; i < obj["@"].length; i++) {
 						// nsX:entity-label or nsX:selected-text for suggestions
-						var label = obj["@"][i][ns_str + ":entity-label"];
+						//var label = obj["@"][i][ns_str + ":entity-label"];
+						var label = obj["@"][i]["http://fise.iks-project.eu/ontology/entity-label"];
 						if (label == undefined) {
-							var label = obj["@"][i][ns_str + ":selected-text"];
+							var label = obj["@"][i]["http://fise.iks-project.eu/ontology/selected-text"];
 						}
 						
 						if (label != undefined) {
