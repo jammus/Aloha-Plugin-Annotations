@@ -17,21 +17,6 @@ if ( !GENTICS.Aloha.Annotations.Services ) GENTICS.Aloha.Annotations.Services = 
 GENTICS.Aloha.Annotations.Services.fise = new GENTICS.Aloha.Annotations.Service('com.gentics.aloha.plugins.Annotations.service.fise');
 
 /**
- * If no API key is given, the public service is searched:
- * @property
- * @cfg
- */
-GENTICS.Aloha.Annotations.Services.fise.settings.ApiKey = false;
-
-/**
- * API Endpoint URL:
- * @property
- * @cfg
- */
-GENTICS.Aloha.Annotations.Services.fise.settings.ApiEndpoint = "http://fise.demo.nuxeo.com/engines/";
-
-
-/**
  * init IKS Fise Service
  */
 GENTICS.Aloha.Annotations.Services.fise.init = function() {
@@ -41,9 +26,12 @@ GENTICS.Aloha.Annotations.Services.fise.init = function() {
 	
 	// REST API Endpoint URL.
 	this.ApiEndpoint = "http://fise.demo.nuxeo.com/engines/";
-	
-	// application/json, application/rdf+xml, application/rdf+json, text/turtle or text/rdf+nt
-	this.ResponseFormat = "application/rdf+json"; 
+	if (GENTICS.Aloha.Annotations.settings.Services && GENTICS.Aloha.Annotations.settings.Services.fise && GENTICS.Aloha.Annotations.settings.Services.fise.ApiEndpoint) {
+	   this.ApiEndpoint = GENTICS.Aloha.Annotations.settings.Services.fise.ApiEndpoint;
+    }
+
+	// (due to bug in fise: text/plain == json-ld output); application/json, application/rdf+xml, application/rdf+json, text/turtle or text/rdf+nt
+	this.ResponseFormat = "text/plain";
 	
 	if ( this.settings.ApiKey ) {
 		// set the service name
@@ -64,21 +52,26 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
     // add the event handler for editableDeactivated
     GENTICS.Aloha.EventRegistry.subscribe(GENTICS.Aloha, 'editableDeactivated', function(event, rangeObject) {
     	if (GENTICS.Aloha.activeEditable) {
-			
-			/* test proxy; move to settings */
-			var proxyUrl = 'http://localhost/aloha-editor/Aloha-Plugin-Annotations/proxy.php?url=';
-			var serviceUrl = 'http://localhost:8080/engines/';
-			var url = proxyUrl + serviceUrl;
-			var timeout = 10000;
+    	    
+    		var url = false;
+    		
+			if (GENTICS.Aloha.settings.proxyUrl) {
+               // the service url is passed as Query parameter, so it needs to be URLEncoded!
+               url = GENTICS.Aloha.settings.proxyUrl + that.ApiEndpoint;
+            } else {
+                alert('ERROR: GENTICS.Aloha.settings.proxyUrl not defined. Configure your AJAXproxy Plugin.');
+            }
+            
+			var timeout = 1000;
 
 			var data = {
 				content: GENTICS.Aloha.activeEditable.getContents(),
 				ajax: true,
-				format:  "text/plain" // application/json, application/rdf+xml, application/rdf+json, text/turtle or text/rdf+nt
+				format: that.ResponseFormat
 			};
 
 			// submit the data to our proxy
-			$.ajax({
+			jQuery.ajax({
 				type: "POST",
 				url: url,
 				data: data,
@@ -86,24 +79,14 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 				contentType: 'text/plain',
 				cache: false,
 				beforeSend : function (xhr) {
-					xhr.setRequestHeader('Accept', 'text/plain');
-					xhr.setRequestHeader('X-Service-Info', 'Aloha Annotation Service');
+					xhr.setRequestHeader('Accept', that.ResponseFormat);
+					xhr.setRequestHeader('X-Service-Info', 'Aloha Editor Annotation Service');
 				},
 				success: function(result) {
 					var obj = jQuery.parseJSON(result);
-					var suggestionsContainer = $("#suggestions input[type=text]");
+					var suggestionsContainer = jQuery("input.as-input");
 					var suggestions = [];
-					var ns_str = 'ns1';
-					
-					/*$.each(obj["@"], function(index, value) { 
-						// search for namespace: http://fise.iks-project.eu/ontology/
-						var re = new RegExp("http:\/\/fise.iks-project.eu\/ontology\/");
-						var match = re.exec(value);
-						if (match != null) {
-							ns_str = index;
-						}
-					});*/
-					
+                    
 					// try / catch instead of:
 					if (obj["@"] == undefined) {
 						obj["@"] = [];
@@ -111,34 +94,34 @@ GENTICS.Aloha.Annotations.Services.fise.subscribeEvents = function () {
 					}
 					
 					for (i = 0; i < obj["@"].length; i++) {
-						// nsX:entity-label or nsX:selected-text for suggestions
-						//var label = obj["@"][i][ns_str + ":entity-label"];
 						var label = obj["@"][i]["http://fise.iks-project.eu/ontology/entity-label"];
-						if (label == undefined) {
-							var label = obj["@"][i]["http://fise.iks-project.eu/ontology/selected-text"];
-						}
-						
-						if (label != undefined) {
+						var confidence = obj["@"][i]["http://fise.iks-project.eu/ontology/confidence"];
+						//if (label == undefined) {
+						//	var label = obj["@"][i]["http://fise.iks-project.eu/ontology/selected-text"];
+						//}
+						if (label != undefined && confidence != undefined) {
 							//var re = new RegExp('\"(.*)\"\^\^<\w+:\w+>'); // not working for "Tag Name"^^<ns5:string>
+							// Suggestion
 							var re = new RegExp('\"(.*)\"');
 							var match = re.exec(label);
 							
-							if (match != null) {
-								
+							// Confidence -- ""0.01657282257080078"^^<http://www.w3.org/2001/XMLSchema#double>"
+							// @todo -- move to config
+							var re = new RegExp('\"(1\.*)\"');
+							var match_confidence = re.exec(confidence);
+							if (match != null && match_confidence != null) {
 								if (jQuery.inArray(match[1], suggestions) < 0) { // a bit of that is now also in the autoSuggest plugin
 									suggestions.push(match[1]);
 								}
 							}
 						}
 					};
-					
 					for (i=0; i < suggestions.length; i++) {
 						suggestionsContainer[0].add_selected_item({name:suggestions[i], value:suggestions[i]});
 					}
 				},
 				error: function(result) {
-					//alert('error');
-					console.log('There was an error fetching the contents of the annotation service.');
+					GENTICS.Aloha.Annotations.log('error', 'There was an error fetching the contents of the annotation service.');
 				}
 			});
 		}

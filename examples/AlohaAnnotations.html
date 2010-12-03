@@ -18,6 +18,7 @@
 <title>Aloha Editor + Annotations Plugin</title>
 
 <!-- Aloha Editor example minimal -->
+
 <script>GENTICS_Aloha_base="../../Aloha-Editor/WebContent/";</script>
 <script type="text/javascript" src="../../Aloha-Editor/WebContent/core/include.js"></script>
 <script type="text/javascript" src="../../Aloha-Editor/WebContent/plugins/com.gentics.aloha.plugins.Format/plugin.js"></script>
@@ -35,7 +36,6 @@
 <script type="text/javascript" src="../../Aloha-Plugin-Annotations/lib/annotationwriter.js"></script>
 <script type="text/javascript" src="../../Aloha-Plugin-Annotations/service/fise.js"></script>
 <script type="text/javascript" src="../../Aloha-Plugin-Annotations/service/zemanta.js"></script>
-
 
 <!-- rdfQuery jQuery Plugin -->
 <script type="text/javascript" src="../../Aloha-Plugin-Annotations/deps/rdfquery/jquery.uri.js"></script>
@@ -70,7 +70,9 @@
 GENTICS.Aloha.settings = {
 	logLevels: {'error': true, 'warn': true, 'info': true, 'debug': true},
 	errorhandling : false,
-	ribbon: false,	
+	ribbon: false,
+	// proxyUrl settings -- after AJAXproxy plugin is available we'll use this one 
+	proxyUrl: 'http://localhost/aloha-editor/Aloha-Plugin-Annotations/proxy.php?url=',
 	"i18n": {
 		// let the system detect the users language
 		"acceptLanguage": 'q=0.6,en-us;q=0.7,en'
@@ -89,6 +91,17 @@ GENTICS.Aloha.settings = {
 		},
 	 	"com.gentics.aloha.plugins.Table": {
 			config: ['table']
+		},
+		"com.gentics.aloha.plugins.Annotations": {
+		    "Services" : {
+		        "fise" : {
+		            ApiEndpoint: 'http://localhost:8080/engines/'
+		        },
+		        "zemanta" : {
+		            ApiEndpoint: 'http://api.zemanta.com/services/rest/0.0/',
+		            ApiKey: '0123456789'
+		        }
+		    }
 		}
   	}
 };
